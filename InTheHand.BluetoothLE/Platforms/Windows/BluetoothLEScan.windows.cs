@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using Windows.Devices.Bluetooth.Advertisement;
 
 namespace InTheHand.Bluetooth
@@ -16,6 +17,7 @@ namespace InTheHand.Bluetooth
         private BluetoothLEScan(BluetoothLEAdvertisementWatcher watcher)
         {
             _watcher = watcher;
+            _watcher.ScanningMode = BluetoothLEScanningMode.Active;            
             _watcher.Received += _watcher_Received;
             _watcher.Start();
 
@@ -51,7 +53,12 @@ namespace InTheHand.Bluetooth
         private void _watcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
         {
             System.Diagnostics.Debug.WriteLine(args.Advertisement);
-            Bluetooth.OnAdvertisementReceived(args);
+            if (args.AdvertisementType == BluetoothLEAdvertisementType.ConnectableDirected || args.AdvertisementType == BluetoothLEAdvertisementType.ConnectableUndirected)
+            {
+                _watcher.Stop();
+                Bluetooth.OnAdvertisementReceived(args);
+                _watcher.Start();
+            }
         }
 
         private void PlatformStop()
